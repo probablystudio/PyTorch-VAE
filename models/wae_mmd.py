@@ -10,6 +10,7 @@ class WAE_MMD(BaseVAE):
     def __init__(self,
                  in_channels: int,
                  latent_dim: int,
+                 out_channels: int,
                  hidden_dims: List = None,
                  reg_weight: int = 100,
                  kernel_type: str = 'imq',
@@ -74,7 +75,7 @@ class WAE_MMD(BaseVAE):
                                                output_padding=1),
                             nn.BatchNorm2d(hidden_dims[-1]),
                             nn.LeakyReLU(),
-                            nn.Conv2d(hidden_dims[-1], out_channels= 3,
+                            nn.Conv2d(hidden_dims[-1], out_channels= out_channels,
                                       kernel_size= 3, padding= 1),
                             nn.Tanh())
 
