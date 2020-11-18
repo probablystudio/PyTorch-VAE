@@ -176,6 +176,7 @@ class SWAE(BaseVAE):
         # across the batches and computing their element-wise l2 distance
         w_dist = torch.sort(latent_projections.t(), dim=1)[0] - \
                  torch.sort(prior_projections.t(), dim=1)[0]
+        w_dist = w_dist.abs() # in case of odd or fractional exponent on next line
         w_dist = w_dist.pow(p)
         return reg_weight * w_dist.mean()
 
