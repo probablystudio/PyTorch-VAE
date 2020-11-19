@@ -16,6 +16,7 @@ class SWAE(BaseVAE):
                  reg_weight: int = 100,
                  wasserstein_deg: float= 2.,
                  num_projections: int = 50,
+                 num_components: int = 1,
                  projection_dist: str = 'normal',
                     **kwargs) -> None:
         super(SWAE, self).__init__()
@@ -24,6 +25,7 @@ class SWAE(BaseVAE):
         self.reg_weight = reg_weight
         self.p = wasserstein_deg
         self.num_projections = num_projections
+        self.num_components = num_components
         self.proj_dist = projection_dist
 
         modules = []
@@ -164,6 +166,13 @@ class SWAE(BaseVAE):
         :return:
         """
         prior_z = torch.randn_like(z) # [N x D]
+        # Now we offset them based on components
+
+        if self.num_components > 1:
+            assignments = torch.randint(0, self.num_components, size=(z.shape[0],))
+            offsets = torch.zeros_like(z)
+            prior_z[:, assignments] += 1
+
         device = z.device
 
         proj_matrix = self.get_random_projections(self.latent_dim,
