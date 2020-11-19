@@ -17,6 +17,7 @@ class SWAE(BaseVAE):
                  wasserstein_deg: float= 2.,
                  num_projections: int = 50,
                  num_components: int = 1,
+                 rotate_mode: bool = False,
                  projection_dist: str = 'normal',
                     **kwargs) -> None:
         super(SWAE, self).__init__()
@@ -26,6 +27,7 @@ class SWAE(BaseVAE):
         self.p = wasserstein_deg
         self.num_projections = num_projections
         self.num_components = num_components
+        self.rotate_mode = rotate_mode
         self.proj_dist = projection_dist
 
         modules = []
@@ -167,13 +169,21 @@ class SWAE(BaseVAE):
         """
         prior_z = torch.randn_like(z) # [N x D]
         # Now we offset them based on components
+        device = z.device
 
         if self.num_components > 1:
             assignments = torch.randint(0, self.num_components, size=(z.shape[0],))
             offsets = torch.zeros_like(z)
             prior_z[:, assignments] += 1
 
-        device = z.device
+        if self.rotate_mode:
+            # We'll rotate off the *last* two vector elements so that this can
+            # play nicely with num_components > 1
+            theta = torch.rand(z.shape[0], device=device) * 2 * 3.14159265359
+
+            prior_z[:,-1] += torch.sin(theta)
+            prior_z[:,-2] += torch.cos(theta)
+
 
         proj_matrix = self.get_random_projections(self.latent_dim,
                                                   num_samples=self.num_projections).transpose(0,1).to(device)
